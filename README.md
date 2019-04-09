@@ -8,3 +8,4 @@
 
 ## Links
 * [IMAP Search Criteria](https://gist.github.com/martinrusev/6121028)
+* [Delta Chat's Email-chat specification](https://github.com/deltachat/spec/blob/master/spec.md)
