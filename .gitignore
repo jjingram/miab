@@ -103,8 +103,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-#config file
-
-
-#config file
+# Config file
 .miabrc
