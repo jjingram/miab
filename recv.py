@@ -45,8 +45,10 @@ for contact in msgs:
             chatmsgs[msg['Message-Id']] = True
         elif 'In-Reply-To' in msg and chatmsgs.get(msg['In-Reply-To'], False):
             chatmsgs[msg['Message-Id']] = True
+    prev = {}
     for msg in msgs[contact]:
-        if chatmsgs.get(msg['Message-Id'], False):
+        if chatmsgs.get(msg['Message-Id'], False) and not prev.get(msg['Message-Id'], False):
+            prev[msg['Message-Id']] = True
             print(msg)
 
 M.close()
