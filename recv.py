@@ -1,6 +1,7 @@
 import configparser
 import imaplib
 import email
+from email.utils import parseaddr, parsedate_to_datetime
 
 config = configparser.ConfigParser()
 config.read('.miabrc')
@@ -8,26 +9,39 @@ config.read('.miabrc')
 M = imaplib.IMAP4_SSL(config['server']['hostname'])
 M.login(config['login']['user'], config['login']['password'])
 
-inbox = []
+msgs = {}
+
 M.select('INBOX', True)
 typ, data = M.uid('sort', '(FROM DATE)', 'UTF-8', 'ALL')
 for uid in data[0].split():
     typ, data = M.uid('fetch', uid, '(RFC822)')
     msg = email.message_from_bytes(data[0][1])
-    inbox.append(msg)
-for msg in inbox:
-    print(msg)
+    name, addr = parseaddr(msg['From'])
+    if 'Date' not in msg or 'Message-Id' not in msg:
+        continue
+    if addr not in msgs:
+        msgs[addr] = []
+    msgs[addr].append(msg)
 M.close()
 
-sent = []
 M.select('Sent', True)
 typ, data = M.uid('sort', '(TO DATE)', 'UTF-8', 'ALL')
 for uid in data[0].split():
     typ, data = M.uid('fetch', uid, '(RFC822)')
     msg = email.message_from_bytes(data[0][1])
-    sent.append(msg)
-for msg in sent:
-    print(msg)
+    name, addr = parseaddr(msg['To'])
+    if 'Date' not in msg or 'Message-Id' not in msg:
+        continue
+    if addr not in msgs:
+        msgs[addr] = []
+    msgs[addr].append(msg)
+
+for contact in msgs:
+    print("### Messages for %s ###\n" % contact)
+    msgs[contact] = sorted(msgs[contact], key=lambda msg: parsedate_to_datetime(msg['Date']).replace(tzinfo=None))
+    for msg in msgs[contact]:
+        print(msg)
+
 M.close()
 
 M.logout()
