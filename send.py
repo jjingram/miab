@@ -2,6 +2,7 @@ import configparser
 import smtplib
 import imaplib
 from email.message import EmailMessage
+from email import encoders
 import time
 
 config = configparser.ConfigParser()
@@ -17,6 +18,7 @@ print("Enter message, end with ^D (Unix) or ^Z (Windows):")
 msg = EmailMessage()
 msg['From'] = fromaddr
 msg['To'] = ", ".join(toaddrs)
+msg['Email2Chat-Version'] = '1.0'
 
 body = ''
 while True:
@@ -28,6 +30,8 @@ while True:
         break
     body = body + line
 msg.set_content(body)
+del msg['Content-Transfer-Encoding']
+encoders.encode_base64(msg)
 
 S = smtplib.SMTP(config['server']['hostname'], config['server']['port'])
 S.set_debuglevel(1)
