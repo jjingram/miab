@@ -12,7 +12,7 @@ M.login(config['login']['user'], config['login']['password'])
 def getmsgs(mailbox, header):
     msgs = {}
     M.select(mailbox, True)
-    typ, data = M.uid('sort', '(FROM DATE)', 'UTF-8', 'ALL')
+    typ, data = M.uid('search', None, 'ALL')
     for uid in data[0].split():
         typ, data = M.uid('fetch', uid, '(RFC822)')
         msg = email.message_from_bytes(data[0][1])
