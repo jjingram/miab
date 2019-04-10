@@ -10,6 +10,7 @@ M.select()
 typ, data = M.search(None, 'ALL')
 for num in data[0].split():
     typ, data = M.fetch(num, '(RFC822)')
-    print('Message %s\n%s\n' % (num, data[0][1]))
+    print('Message %s\n' % (num.decode('utf-8')))
+    print('%s\r\n' % (data[0][1].decode('utf-8')), end='\r\n')
 M.close()
 M.logout()
