@@ -1,5 +1,8 @@
 import configparser
 import smtplib
+import imaplib
+from email.message import EmailMessage
+import time
 
 config = configparser.ConfigParser()
 config.read('.miabrc')
@@ -11,9 +14,11 @@ fromaddr = config['login']['user']
 toaddrs  = prompt("To: ").split()
 print("Enter message, end with ^D (Unix) or ^Z (Windows):")
 
-# Add the From: and To: headers at the start!
-msg = ("From: %s\r\nTo: %s\r\n\r\n"
-       % (fromaddr, ", ".join(toaddrs)))
+msg = EmailMessage()
+msg['From'] = fromaddr
+msg['To'] = ", ".join(toaddrs)
+
+body = ''
 while True:
     try:
         line = input()
@@ -21,13 +26,17 @@ while True:
         break
     if not line:
         break
-    msg = msg + line
+    body = body + line
+msg.set_content(body)
 
-print("Message length is", len(msg))
+S = smtplib.SMTP(config['server']['hostname'], config['server']['port'])
+S.set_debuglevel(1)
+S.starttls()
+S.login(config['login']['user'], config['login']['password'])
+S.send_message(msg)
+S.quit()
 
-server = smtplib.SMTP(config['server']['hostname'], config['server']['port'])
-server.set_debuglevel(1)
-server.starttls()
-server.login(config['login']['user'], config['login']['password'])
-server.sendmail(fromaddr, toaddrs, msg)
-server.quit()
+M = imaplib.IMAP4_SSL(config['server']['hostname'])
+M.login(config['login']['user'], config['login']['password'])
+print(M.append('Sent', '', imaplib.Time2Internaldate(time.time()), str(msg).encode('utf-8')))
+M.logout()
