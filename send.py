@@ -37,6 +37,7 @@ S.send_message(msg)
 S.quit()
 
 M = imaplib.IMAP4_SSL(config['server']['hostname'])
+M.debug = 4
 M.login(config['login']['user'], config['login']['password'])
-print(M.append('Sent', '', imaplib.Time2Internaldate(time.time()), str(msg).encode('utf-8')))
+M.append('Sent', '', imaplib.Time2Internaldate(time.time()), str(msg).encode('utf-8'))
 M.logout()
