@@ -9,32 +9,30 @@ config.read('.miabrc')
 M = imaplib.IMAP4_SSL(config['server']['hostname'])
 M.login(config['login']['user'], config['login']['password'])
 
+def getmsgs(mailbox, header):
+    msgs = {}
+    M.select(mailbox, True)
+    typ, data = M.uid('sort', '(FROM DATE)', 'UTF-8', 'ALL')
+    for uid in data[0].split():
+        typ, data = M.uid('fetch', uid, '(RFC822)')
+        msg = email.message_from_bytes(data[0][1])
+        name, addr = parseaddr(msg[header])
+        if 'Date' not in msg or 'Message-Id' not in msg:
+            continue
+        if addr not in msgs:
+            msgs[addr] = []
+        msgs[addr].append(msg)
+    M.close()
+    return msgs
+
+inbox = getmsgs('INBOX', 'From')
+sent = getmsgs('Sent', 'To')
 msgs = {}
-
-M.select('INBOX', True)
-typ, data = M.uid('sort', '(FROM DATE)', 'UTF-8', 'ALL')
-for uid in data[0].split():
-    typ, data = M.uid('fetch', uid, '(RFC822)')
-    msg = email.message_from_bytes(data[0][1])
-    name, addr = parseaddr(msg['From'])
-    if 'Date' not in msg or 'Message-Id' not in msg:
-        continue
-    if addr not in msgs:
-        msgs[addr] = []
-    msgs[addr].append(msg)
-M.close()
-
-M.select('Sent', True)
-typ, data = M.uid('sort', '(TO DATE)', 'UTF-8', 'ALL')
-for uid in data[0].split():
-    typ, data = M.uid('fetch', uid, '(RFC822)')
-    msg = email.message_from_bytes(data[0][1])
-    name, addr = parseaddr(msg['To'])
-    if 'Date' not in msg or 'Message-Id' not in msg:
-        continue
-    if addr not in msgs:
-        msgs[addr] = []
-    msgs[addr].append(msg)
+for contact in sent:
+    if contact in inbox:
+        msgs[contact] = inbox[contact] + sent[contact]
+    else:
+        msgs[contact] = sent[contact]
 
 for contact in msgs:
     print("### %s ###\n" % contact)
@@ -50,7 +48,5 @@ for contact in msgs:
         if chatmsgs.get(msg['Message-Id'], False) and not prev.get(msg['Message-Id'], False):
             prev[msg['Message-Id']] = True
             print(msg)
-
-M.close()
 
 M.logout()
