@@ -18,7 +18,7 @@ print("Enter message, end with ^D (Unix) or ^Z (Windows):")
 msg = EmailMessage()
 msg['From'] = fromaddr
 msg['To'] = ", ".join(toaddrs)
-msg['Message-Id'] = make_msgid(None, config['server']['hostname'])
+msg['Message-Id'] = make_msgid(None, config['server']['domain'])
 msg['Date'] = formatdate(None, True, False)
 msg['Email2Chat-Version'] = '1.0'
 
