@@ -2,6 +2,7 @@ import configparser
 import smtplib
 import imaplib
 from email.message import EmailMessage
+from email.utils import make_msgid
 from email import encoders
 import time
 
@@ -18,6 +19,7 @@ print("Enter message, end with ^D (Unix) or ^Z (Windows):")
 msg = EmailMessage()
 msg['From'] = fromaddr
 msg['To'] = ", ".join(toaddrs)
+msg['Message-Id'] = make_msgid(None, config['server']['hostname'])
 msg['Email2Chat-Version'] = '1.0'
 
 body = ''
