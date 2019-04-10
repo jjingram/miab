@@ -3,7 +3,6 @@ import smtplib
 import imaplib
 from email.message import EmailMessage
 from email.utils import make_msgid, formatdate
-from email import encoders
 import time
 
 config = configparser.ConfigParser()
@@ -33,8 +32,6 @@ while True:
         break
     body = body + line
 msg.set_content(body)
-del msg['Content-Transfer-Encoding']
-encoders.encode_base64(msg)
 
 S = smtplib.SMTP(config['server']['hostname'], config['server']['port'])
 S.set_debuglevel(1)
