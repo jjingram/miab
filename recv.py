@@ -1,5 +1,6 @@
 import configparser
 import imaplib
+import email
 
 config = configparser.ConfigParser()
 config.read('.miabrc')
@@ -7,19 +8,25 @@ config.read('.miabrc')
 M = imaplib.IMAP4_SSL(config['server']['hostname'])
 M.login(config['login']['user'], config['login']['password'])
 
-M.select('INBOX')
-typ, data = M.search(None, 'ALL')
-for num in data[0].split():
-    typ, data = M.fetch(num, '(RFC822)')
-    print('Received Message %s\n' % (num.decode('utf-8')))
-    print('%s\r\n' % (data[0][1].decode('utf-8')), end='\r\n')
+recv = []
+M.select('INBOX', True)
+typ, data = M.uid('search', None, '(Header "Email2Chat-Version" "")')
+for uid in data[0].split():
+    typ, data = M.uid('fetch', uid, '(RFC822)')
+    msg = email.message_from_bytes(data[0][1])
+    recv.append(msg)
+for msg in recv:
+    print(msg)
 
-M.select('Sent')
-typ, data = M.search(None, 'ALL')
-for num in data[0].split():
-    typ, data = M.fetch(num, '(RFC822)')
-    print('Sent Message %s\n' % (num.decode('utf-8')))
-    print('%s\r\n' % (data[0][1].decode('utf-8')), end='\r\n')
+sent = []
+M.select('Sent', True)
+typ, data = M.uid('search', None, '(Header "Email2Chat-Version" "")')
+for uid in data[0].split():
+    typ, data = M.uid('fetch', uid, '(RFC822)')
+    msg = email.message_from_bytes(data[0][1])
+    sent.append(msg)
+for msg in sent:
+    print(msg)
 
 M.close()
 M.logout()
