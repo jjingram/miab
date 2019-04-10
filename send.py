@@ -33,9 +33,14 @@ while True:
     body = body + line
 msg.set_content(body)
 
-S = smtplib.SMTP(config['server']['hostname'], config['server']['port'])
-S.set_debuglevel(1)
-S.starttls()
+S = None
+if config['server']['port'] == '465':
+    S = smtplib.SMTP_SSL(config['server']['hostname'])
+    S.set_debuglevel(1)
+else:
+    S = smtplib.SMTP(config['server']['hostname'], config['server']['port'])
+    S.set_debuglevel(1)
+    S.starttls()
 S.login(config['login']['user'], config['login']['password'])
 S.send_message(msg)
 S.quit()
