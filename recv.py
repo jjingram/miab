@@ -37,10 +37,17 @@ for uid in data[0].split():
     msgs[addr].append(msg)
 
 for contact in msgs:
-    print("### Messages for %s ###\n" % contact)
+    print("### %s ###\n" % contact)
     msgs[contact] = sorted(msgs[contact], key=lambda msg: parsedate_to_datetime(msg['Date']).replace(tzinfo=None))
+    chatmsgs = {}
     for msg in msgs[contact]:
-        print(msg)
+        if 'Email2Chat-Version' in msg:
+            chatmsgs[msg['Message-Id']] = True
+        elif 'In-Reply-To' in msg and chatmsgs.get(msg['In-Reply-To'], False):
+            chatmsgs[msg['Message-Id']] = True
+    for msg in msgs[contact]:
+        if chatmsgs.get(msg['Message-Id'], False):
+            print(msg)
 
 M.close()
 
